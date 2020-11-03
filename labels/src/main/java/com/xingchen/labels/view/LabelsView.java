@@ -138,8 +138,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         if (attrs != null) {
             TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
             mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_maxLines, -1);
-            mWordMargin = mTypedArray.getInteger(R.styleable.LabelsView_wordMargin, dp2px(5));
-            mLineMargin = mTypedArray.getInteger(R.styleable.LabelsView_lineMargin, dp2px(5));
+            mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_wordMargin, dp2px(5));
+            mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_lineMargin, dp2px(5));
             mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
             mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
             mLabelGravity = mTypedArray.getInt(R.styleable.LabelsView_labelGravity, Gravity.CENTER);

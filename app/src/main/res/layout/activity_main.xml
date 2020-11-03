@@ -20,7 +20,9 @@
         android:layout_height="wrap_content"
         app:labelTextColor="#785643"
         app:labelTextSize="16sp"
-        app:maxLines="2" />
+        app:lineMargin="10dp"
+        app:maxLines="2"
+        app:wordMargin="20dp" />
 
     <Button
         android:layout_width="wrap_content"
