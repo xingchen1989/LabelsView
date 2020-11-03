@@ -16,8 +16,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private LabelsView labelsView;
 
-    private List<String> list = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,9 +30,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void add(View view) {
-        for (int i = 0; i < 9; i++) {
-            list.add("测试" + i);
-        }
-        labelsView.setLabels(list);
+        List<String> labels = new ArrayList<>();
+        labels.add("糖尿病");
+        labels.add("高血压");
+        labels.add("高血糖");
+        labels.add("甲状腺机能障碍");
+        labels.add("冠心病");
+        labels.add("脑血栓");
+        labels.add("脑血管病变");
+        labelsView.setLabels(labels);
+        labelsView.setLabelClickListener(new OnLabelClickListener() {
+            @Override
+            public void onLabelClick(TextView label, int position) {
+                Toast.makeText(MainActivity.this, "点击了：" + label.getText(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
