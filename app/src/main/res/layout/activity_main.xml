@@ -8,17 +8,6 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="请输入" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:textColor="#785643" />
-
     <com.xingchen.labels.view.LabelsView
         android:id="@+id/labels"
         android:layout_width="match_parent"
@@ -28,10 +17,4 @@
         app:lineMargin="10dp"
         app:maxLines="2"
         app:wordMargin="20dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="add"
-        android:text="add" />
 </LinearLayout>

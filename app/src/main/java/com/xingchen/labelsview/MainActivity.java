@@ -1,7 +1,6 @@
 package com.xingchen.labelsview;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,15 +20,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         labelsView = findViewById(R.id.labels);
+        labelsView.setLabels(getLabels());
         labelsView.setLabelClickListener(new OnLabelClickListener() {
             @Override
             public void onLabelClick(TextView label, int position) {
-                Toast.makeText(MainActivity.this, position + "", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "点击了：" + label.getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    public void add(View view) {
+    public List<String> getLabels() {
         List<String> labels = new ArrayList<>();
         labels.add("糖尿病");
         labels.add("高血压");
@@ -38,12 +38,6 @@ public class MainActivity extends AppCompatActivity {
         labels.add("冠心病");
         labels.add("脑血栓");
         labels.add("脑血管病变");
-        labelsView.setLabels(labels);
-        labelsView.setLabelClickListener(new OnLabelClickListener() {
-            @Override
-            public void onLabelClick(TextView label, int position) {
-                Toast.makeText(MainActivity.this, "点击了：" + label.getText(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        return labels;
     }
 }

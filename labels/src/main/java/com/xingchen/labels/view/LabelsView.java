@@ -235,13 +235,15 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         TextView label = new TextView(getContext());
         label.setTag(KEY_DATA, data);
         label.setTag(KEY_POSITION, position);
-        label.setPadding(mTextPaddingLeft, mTextPaddingTop, mTextPaddingRight, mTextPaddingBottom);
-        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         label.setTextColor(mTextColor);
-        label.setBackground(mLabelBg);
         label.setGravity(mLabelGravity);
         label.getPaint().setFakeBoldText(isTextBold);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
+        label.setPadding(mTextPaddingLeft, mTextPaddingTop, mTextPaddingRight, mTextPaddingBottom);
         label.setText(provider.getLabelText(label, position, data));
+        //设置给label的背景(Drawable)是一个Drawable对象的拷贝，
+        // 因为如果所有的标签都共用一个Drawable对象，会引起背景错乱。
+        label.setBackground(mLabelBg.getConstantState().newDrawable());
         label.setOnClickListener(this);
         addView(label);
     }
