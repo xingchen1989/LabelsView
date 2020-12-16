@@ -21,7 +21,12 @@ import java.util.List;
 public class LabelsView extends ViewGroup implements View.OnClickListener {
     private static final int KEY_DATA = R.id.label_key_data;//用于保存label数据的key
     private static final int KEY_POSITION = R.id.label_key_position;//用于保存label位置的key
+    private static final int SELECT_NONE = 1;//不可选中，也不响应选中事件回调（默认）。
+    private static final int SELECT_SINGLE = 2;//单选,可以反选。
+    private static final int SELECT_SINGLE_IRREVOCABLY = 3;//单选,不可以反选。这种模式下，至少有一个是选中的，默认是第一个。
+    private static final int SELECT_MULTI = 4;//多选,可以反选。
 
+    private int mSelectType;//选中模式
     private int mMaxLines;//最大行数
     private int mLineMargin;//行与行的距离
     private int mWordMargin;//标签和标签的距离
@@ -35,6 +40,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private boolean isTextBold;//是否加粗
     private Drawable mLabelBg;//标签背景
     private OnLabelClickListener mLabelClickListener;
+    private ArrayList<View> mSelectLabels = new ArrayList<>();//保存选中的label
 
     public LabelsView(Context context) {
         this(context, null);
@@ -43,7 +49,39 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     public LabelsView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initAttrs(context, attrs);
-        showEditPreview();
+    }
+
+    /**
+     * 初始化自定义属性
+     *
+     * @param context
+     * @param attrs
+     */
+    private void initAttrs(Context context, AttributeSet attrs) {
+        TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
+        mSelectType = mTypedArray.getInt(R.styleable.LabelsView_selectType, 1);
+        mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_maxLines, -1);
+        mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_wordMargin, dp2px(5));
+        mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_lineMargin, dp2px(5));
+        mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
+        mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
+        mLabelGravity = mTypedArray.getInt(R.styleable.LabelsView_labelGravity, Gravity.CENTER);
+        isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_isTextBold, false);
+        if (mTypedArray.hasValue(R.styleable.LabelsView_labelBackground)) {
+            mLabelBg = mTypedArray.getDrawable(R.styleable.LabelsView_labelBackground);
+        } else {
+            mLabelBg = getResources().getDrawable(R.drawable.default_label_bg);
+        }
+        if (mTypedArray.hasValue(R.styleable.LabelsView_labelTextPadding)) {
+            mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom =
+                    mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+        } else {
+            mTextPaddingLeft = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingLeft, dp2px(10));
+            mTextPaddingTop = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingTop, dp2px(5));
+            mTextPaddingRight = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingRight, dp2px(10));
+            mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingBottom, dp2px(5));
+        }
+        mTypedArray.recycle();
     }
 
     @Override
@@ -127,56 +165,39 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     }
 
     @Override
-    public void onClick(View v) {
-        if (v instanceof TextView) {
-            TextView label = (TextView) v;
-            mLabelClickListener.onLabelClick(label, (int) label.getTag(KEY_POSITION));
-        }
-    }
-
-    private void initAttrs(Context context, AttributeSet attrs) {
-        if (attrs != null) {
-            TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
-            mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_maxLines, -1);
-            mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_wordMargin, dp2px(5));
-            mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_lineMargin, dp2px(5));
-            mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
-            mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
-            mLabelGravity = mTypedArray.getInt(R.styleable.LabelsView_labelGravity, Gravity.CENTER);
-            isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_isTextBold, false);
-            if (mTypedArray.hasValue(R.styleable.LabelsView_labelBackground)) {
-                mLabelBg = mTypedArray.getDrawable(R.styleable.LabelsView_labelBackground);
-            } else {
-                mLabelBg = getResources().getDrawable(R.drawable.default_label_bg);
-            }
-            if (mTypedArray.hasValue(R.styleable.LabelsView_labelTextPadding)) {
-                mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom =
-                        mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
-            } else {
-                mTextPaddingLeft = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingLeft, dp2px(10));
-                mTextPaddingTop = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingTop, dp2px(5));
-                mTextPaddingRight = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingRight, dp2px(10));
-                mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingBottom, dp2px(5));
-            }
-            mTypedArray.recycle();
-        }
-    }
-
-    /**
-     * 编辑预览
-     */
-    private void showEditPreview() {
-        if (isInEditMode()) {
-            ArrayList<String> label = new ArrayList<>();
-            for (int i = 0; i < 9; i++) {
-                label.add("测试" + i);
-            }
-            setLabels(label, new LabelTextProvider<String>() {
-                @Override
-                public CharSequence getLabelText(TextView label, int position, String data) {
-                    return null;
+    public void onClick(View label) {
+        if (label instanceof TextView) {
+            if (mSelectType == SELECT_SINGLE) {
+                if (mSelectLabels.contains(label)) {
+                    label.setSelected(!label.isSelected());
+                } else {
+                    clearAllSelect();
+                    label.setSelected(true);
+                    mSelectLabels.add(label);
                 }
-            });
+            } else if (mSelectType == SELECT_SINGLE_IRREVOCABLY) {
+                if (!label.isSelected()) {
+                    if (mSelectLabels.contains(label)) {
+                        label.setSelected(!label.isSelected());
+                    } else {
+                        clearAllSelect();
+                        label.setSelected(true);
+                        mSelectLabels.add(label);
+                    }
+                }
+            } else if (mSelectType == SELECT_MULTI) {
+                if (label.isSelected()) {
+                    label.setSelected(false);
+                    mSelectLabels.remove(label);
+                } else {
+                    label.setSelected(true);
+                    mSelectLabels.add(label);
+                }
+            }
+
+            if (mLabelClickListener != null) {
+                mLabelClickListener.onLabelClick((TextView) label, (int) label.getTag(KEY_POSITION));
+            }
         }
     }
 
@@ -191,6 +212,19 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             TextView label = (TextView) getChildAt(i);
             label.setClickable(mLabelClickListener != null);
         }
+    }
+
+    /**
+     * 获取选中的label(返回的是所有选中的标签的位置)
+     *
+     * @return
+     */
+    public List<Integer> getSelectLabels() {
+        List<Integer> indexList = new ArrayList<>();
+        for (View view : mSelectLabels) {
+            indexList.add((Integer) view.getTag(KEY_POSITION));
+        }
+        return indexList;
     }
 
     /**
@@ -247,6 +281,17 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         label.setOnClickListener(this);
         addView(label);
     }
+
+    /**
+     * 清除所有已选项
+     */
+    private void clearAllSelect() {
+        for (View item : mSelectLabels) {
+            item.setSelected(false);
+        }
+        mSelectLabels.clear();
+    }
+
 
     /**
      * sp转px
