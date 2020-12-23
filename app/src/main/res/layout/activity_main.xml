@@ -14,6 +14,8 @@
         android:layout_height="wrap_content"
         app:labelBackground="@drawable/label_bg"
         app:labelTextColor="#785643"
+        app:labelTextMinHeight="100dp"
+        app:labelTextMinWidth="200dp"
         app:labelTextSize="16sp"
         app:lineMargin="10dp"
         app:maxLines="2"

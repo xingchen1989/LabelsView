@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.xingchen.labels.R;
 import com.xingchen.labels.interfaces.LabelTextProvider;
 import com.xingchen.labels.interfaces.OnLabelClickListener;
@@ -31,6 +33,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private int mLineMargin;//行与行的距离
     private int mWordMargin;//标签和标签的距离
     private int mLabelGravity;//标签的重力
+    private int mLabelWidth;//标签宽度
+    private int mLabelHeight;//标签高度
+    private int mLabelMinWidth;//标签最小宽度
+    private int mLabelMinHeight;//标签最小高度
     private int mTextColor;//文字颜色
     private int mTextPaddingLeft;//文字左内间距
     private int mTextPaddingTop;//文字上内间距
@@ -66,11 +72,15 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
         mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
         mLabelGravity = mTypedArray.getInt(R.styleable.LabelsView_labelGravity, Gravity.CENTER);
+        mLabelWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextWidth, LayoutParams.WRAP_CONTENT);
+        mLabelHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextHeight, LayoutParams.WRAP_CONTENT);
+        mLabelMinWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinWidth, LayoutParams.WRAP_CONTENT);
+        mLabelMinHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinHeight, LayoutParams.WRAP_CONTENT);
         isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_isTextBold, false);
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelBackground)) {
             mLabelBg = mTypedArray.getDrawable(R.styleable.LabelsView_labelBackground);
         } else {
-            mLabelBg = getResources().getDrawable(R.drawable.default_label_bg);
+            mLabelBg = ContextCompat.getDrawable(context, R.drawable.default_label_bg);
         }
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelTextPadding)) {
             mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom =
@@ -269,6 +279,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         TextView label = new TextView(getContext());
         label.setTag(KEY_DATA, data);
         label.setTag(KEY_POSITION, position);
+        label.setMinWidth(mLabelMinWidth);
+        label.setMinHeight(mLabelMinHeight);
         label.setTextColor(mTextColor);
         label.setGravity(mLabelGravity);
         label.getPaint().setFakeBoldText(isTextBold);
@@ -279,7 +291,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         // 因为如果所有的标签都共用一个Drawable对象，会引起背景错乱。
         label.setBackground(mLabelBg.getConstantState().newDrawable());
         label.setOnClickListener(this);
-        addView(label);
+        addView(label, mLabelWidth, mLabelHeight);
     }
 
     /**

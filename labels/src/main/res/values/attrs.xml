@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="LabelsView">
+        <attr name="isTextBold" format="boolean" />
         <attr name="maxLines" format="integer" />
         <attr name="lineMargin" format="dimension" />
         <attr name="wordMargin" format="dimension" />
-        <attr name="isTextBold" format="boolean" />
         <attr name="labelTextColor" format="color" />
         <attr name="labelTextSize" format="dimension" />
         <attr name="labelTextWidth" format="dimension" />
+        <attr name="labelTextHeight" format="dimension" />
+        <attr name="labelTextMinWidth" format="dimension" />
+        <attr name="labelTextMinHeight" format="dimension" />
         <attr name="labelTextPadding" format="dimension" />
         <attr name="labelTextPaddingLeft" format="dimension" />
         <attr name="labelTextPaddingTop" format="dimension" />
         <attr name="labelTextPaddingRight" format="dimension" />
         <attr name="labelTextPaddingBottom" format="dimension" />
         <attr name="labelBackground" format="reference" />
+
+        <attr name="selectType" format="enum">
+            <enum name="NONE" value="1" />
+            <enum name="SINGLE" value="2" />
+            <enum name="SINGLE_IRREVOCABLY" value="3" />
+            <enum name="MULTI" value="4" />
+        </attr>
 
         <attr name="labelGravity">
             <!-- Push object to the top of its container, not changing its size. -->
@@ -50,13 +60,6 @@
             <flag name="start" value="0x00800003" />
             <!-- Push object to the end of its container, not changing its size. -->
             <flag name="end" value="0x00800005" />
-        </attr>
-
-        <attr name="selectType" format="enum">
-            <enum name="NONE" value="1" />
-            <enum name="SINGLE" value="2" />
-            <enum name="SINGLE_IRREVOCABLY" value="3" />
-            <enum name="MULTI" value="4" />
         </attr>
     </declare-styleable>
 </resources>
