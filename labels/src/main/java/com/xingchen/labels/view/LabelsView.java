@@ -225,14 +225,27 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     }
 
     /**
-     * 获取选中的label(返回的是所有选中的标签的位置)
+     * 返回所有选中的标签的位置
      *
      * @return
      */
-    public List<Integer> getSelectLabels() {
+    public List<Integer> getSelectedLabelsIndex() {
         List<Integer> indexList = new ArrayList<>();
         for (View view : mSelectLabels) {
             indexList.add((Integer) view.getTag(KEY_POSITION));
+        }
+        return indexList;
+    }
+
+    /**
+     * 返回所有选中的标签的文本
+     *
+     * @return
+     */
+    public List<String> getSelectedLabelsText() {
+        List<String> indexList = new ArrayList<>();
+        for (View view : mSelectLabels) {
+            indexList.add(((TextView) view).getText().toString());
         }
         return indexList;
     }
