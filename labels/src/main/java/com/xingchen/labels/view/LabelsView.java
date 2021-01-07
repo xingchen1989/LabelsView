@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import com.xingchen.labels.R;
 import com.xingchen.labels.interfaces.LabelTextProvider;
 import com.xingchen.labels.interfaces.OnLabelClickListener;
+import com.xingchen.labels.interfaces.OnLabelSelectChangeListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private boolean isTextBold;//是否加粗
     private Drawable mLabelBg;//标签背景
     private OnLabelClickListener mLabelClickListener;
-    private ArrayList<View> mSelectLabels = new ArrayList<>();//保存选中的label
+    private OnLabelSelectChangeListener mLabelSelectChangeListener;
+    private final ArrayList<View> mSelectLabels = new ArrayList<>();//保存选中的label
 
     public LabelsView(Context context) {
         this(context, null);
@@ -177,36 +179,25 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     @Override
     public void onClick(View label) {
         if (label instanceof TextView) {
-            if (mSelectType == SELECT_SINGLE) {
-                if (mSelectLabels.contains(label)) {
-                    label.setSelected(!label.isSelected());
-                } else {
-                    clearAllSelect();
-                    label.setSelected(true);
-                    mSelectLabels.add(label);
-                }
-            } else if (mSelectType == SELECT_SINGLE_IRREVOCABLY) {
-                if (!label.isSelected()) {
+            if (mSelectType != SELECT_NONE) {
+                if (mSelectType == SELECT_SINGLE) {
                     if (mSelectLabels.contains(label)) {
-                        label.setSelected(!label.isSelected());
+                        setLabelSelect(label, !label.isSelected());
                     } else {
                         clearAllSelect();
-                        label.setSelected(true);
-                        mSelectLabels.add(label);
+                        setLabelSelect(label, true);
                     }
-                }
-            } else if (mSelectType == SELECT_MULTI) {
-                if (label.isSelected()) {
-                    label.setSelected(false);
-                    mSelectLabels.remove(label);
-                } else {
-                    label.setSelected(true);
-                    mSelectLabels.add(label);
+                } else if (mSelectType == SELECT_SINGLE_IRREVOCABLY) {
+                    if (!label.isSelected()) {
+                        clearAllSelect();
+                        setLabelSelect(label, true);
+                    }
+                } else if (mSelectType == SELECT_MULTI) {
+                    setLabelSelect(label, !label.isSelected());
                 }
             }
-
             if (mLabelClickListener != null) {
-                mLabelClickListener.onLabelClick((TextView) label, (int) label.getTag(KEY_POSITION));
+                mLabelClickListener.onLabelClick((TextView) label, label.getTag(KEY_DATA), (int) label.getTag(KEY_POSITION));
             }
         }
     }
@@ -216,12 +207,21 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
      *
      * @param labelClickListener
      */
-    public void setLabelClickListener(OnLabelClickListener labelClickListener) {
+    public void setOnLabelClickListener(OnLabelClickListener labelClickListener) {
         mLabelClickListener = labelClickListener;
         for (int i = 0; i < getChildCount(); i++) {
             TextView label = (TextView) getChildAt(i);
             label.setClickable(mLabelClickListener != null);
         }
+    }
+
+    /**
+     * 设置标签的选择监听
+     *
+     * @param labelSelectChangeListener
+     */
+    public void setOnLabelSelectChangeListener(OnLabelSelectChangeListener labelSelectChangeListener) {
+        mLabelSelectChangeListener = labelSelectChangeListener;
     }
 
     /**
@@ -251,6 +251,55 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     }
 
     /**
+     * 获取选中的label(返回的是所头选中的标签的数据)
+     *
+     * @param <T>
+     * @return
+     */
+    public <T> List<T> getSelectedLabelData() {
+        List<T> list = new ArrayList<>();
+        for (View label : mSelectLabels) {
+            Object data = label.getTag(KEY_DATA);
+            if (data != null) {
+                list.add((T) data);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 设置选中label
+     *
+     * @param positions
+     */
+    public void setSelects(int... positions) {
+        if (mSelectType != SELECT_NONE) {
+            ArrayList<View> selectLabels = new ArrayList<>();
+            int count = getChildCount();
+            int size = mSelectType == SELECT_SINGLE ||
+                    mSelectType == SELECT_SINGLE_IRREVOCABLY ? 1 : Integer.MAX_VALUE;
+            for (int position : positions) {
+                if (position < count) {
+                    View label = getChildAt(position);
+                    if (!selectLabels.contains(label)) {
+                        selectLabels.add(label);
+                        setLabelSelect(label, true);
+                    }
+                    if (selectLabels.size() == size) {
+                        break;
+                    }
+                }
+            }
+            for (int i = 0; i < count; i++) {
+                View label = getChildAt(i);
+                if (!selectLabels.contains(label)) {
+                    setLabelSelect(label, false);
+                }
+            }
+        }
+    }
+
+    /**
      * 设置标签列表
      *
      * @param labels
@@ -276,6 +325,27 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         if (labels != null) {
             for (int i = 0; i < labels.size(); i++) {
                 addLabel(labels.get(i), i, provider);
+            }
+        }
+    }
+
+    /**
+     * 是否选中某个标签
+     *
+     * @param label
+     * @param isSelect
+     */
+    private void setLabelSelect(View label, boolean isSelect) {
+        if (label.isSelected() != isSelect) {
+            label.setSelected(isSelect);
+            if (isSelect) {
+                mSelectLabels.add(label);
+            } else {
+                mSelectLabels.remove(label);
+            }
+            if (mLabelSelectChangeListener != null) {
+                mLabelSelectChangeListener.onLabelSelectChange((TextView) label,
+                        label.getTag(KEY_DATA), isSelect, (int) label.getTag(KEY_POSITION));
             }
         }
     }

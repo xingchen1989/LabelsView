@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.xingchen.labels.interfaces.OnLabelClickListener;
+import com.xingchen.labels.interfaces.OnLabelSelectChangeListener;
 import com.xingchen.labels.view.LabelsView;
 
 import java.util.ArrayList;
@@ -21,10 +22,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         labelsView = findViewById(R.id.labels);
         labelsView.setLabels(getLabels());
-        labelsView.setLabelClickListener(new OnLabelClickListener() {
+        labelsView.setSelects(0, 2);
+        labelsView.setOnLabelClickListener(new OnLabelClickListener() {
             @Override
-            public void onLabelClick(TextView label, int position) {
+            public void onLabelClick(TextView label, Object data, int position) {
                 Toast.makeText(MainActivity.this, "点击了：" + label.getText(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        labelsView.setOnLabelSelectChangeListener(new OnLabelSelectChangeListener() {
+            @Override
+            public void onLabelSelectChange(TextView label, Object data, boolean isSelect, int position) {
+                Toast.makeText(MainActivity.this, "选项：" + label.getText() + isSelect, Toast.LENGTH_SHORT).show();
             }
         });
     }
