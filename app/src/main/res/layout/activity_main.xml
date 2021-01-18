@@ -15,7 +15,7 @@
         app:labelBackground="@drawable/label_bg"
         app:labelTextColor="#785643"
         app:labelTextSize="16sp"
-        app:lineMargin="10dp"
+        app:lineMargin="60dp"
         app:maxLines="2"
         app:selectType="MULTI"
         app:wordMargin="20dp" />

@@ -130,7 +130,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
                 //记录一行中item高度最大的高度
                 maxItemHeight = Math.max(maxItemHeight, child.getMeasuredHeight());
             } else {
-                if (++lineCount > mMaxLines) {
+                if (++lineCount > mMaxLines && mMaxLines > 0) {
                     break;
                 }
                 //换行的情况记录加上上一行内容高度和间距
@@ -164,7 +164,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             if (availableSpace > xCoordinate + view.getMeasuredWidth()) {
                 maxItemHeight = Math.max(maxItemHeight, view.getMeasuredHeight());
             } else {
-                if (++lineCount > mMaxLines) {
+                if (++lineCount > mMaxLines && mMaxLines > 0) {
                     break;
                 }
                 xCoordinate = 0;
