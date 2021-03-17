@@ -276,9 +276,39 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         if (mSelectType != SELECT_NONE) {
             ArrayList<View> selectLabels = new ArrayList<>();
             int count = getChildCount();
-            int size = mSelectType == SELECT_SINGLE ||
-                    mSelectType == SELECT_SINGLE_IRREVOCABLY ? 1 : Integer.MAX_VALUE;
+            int size = mSelectType == SELECT_SINGLE || mSelectType == SELECT_SINGLE_IRREVOCABLY ? 1 : Integer.MAX_VALUE;
             for (int position : positions) {
+                if (position < count) {
+                    View label = getChildAt(position);
+                    if (!selectLabels.contains(label)) {
+                        selectLabels.add(label);
+                        setLabelSelect(label, true);
+                    }
+                    if (selectLabels.size() == size) {
+                        break;
+                    }
+                }
+            }
+            for (int i = 0; i < count; i++) {
+                View label = getChildAt(i);
+                if (!selectLabels.contains(label)) {
+                    setLabelSelect(label, false);
+                }
+            }
+        }
+    }
+
+    /**
+     * 设置选中label
+     *
+     * @param positionList
+     */
+    public void setSelects(List<Integer> positionList) {
+        if (mSelectType != SELECT_NONE) {
+            ArrayList<View> selectLabels = new ArrayList<>();
+            int count = getChildCount();
+            int size = mSelectType == SELECT_SINGLE || mSelectType == SELECT_SINGLE_IRREVOCABLY ? 1 : Integer.MAX_VALUE;
+            for (int position : positionList) {
                 if (position < count) {
                     View label = getChildAt(position);
                     if (!selectLabels.contains(label)) {
