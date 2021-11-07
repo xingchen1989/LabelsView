@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="LabelsView">
-        <attr name="isTextBold" format="boolean" />
-        <attr name="maxLines" format="integer" />
-        <attr name="lineMargin" format="dimension" />
-        <attr name="wordMargin" format="dimension" />
+        <attr name="labelTextIsBold" format="boolean" />
+        <attr name="labelMaxLines" format="integer" />
         <attr name="labelTextColor" format="color" />
         <attr name="labelTextSize" format="dimension" />
+        <attr name="labelLineMargin" format="dimension" />
+        <attr name="labelWordMargin" format="dimension" />
         <attr name="labelTextWidth" format="dimension" />
         <attr name="labelTextHeight" format="dimension" />
         <attr name="labelTextMinWidth" format="dimension" />
@@ -18,14 +18,14 @@
         <attr name="labelTextPaddingBottom" format="dimension" />
         <attr name="labelBackground" format="reference" />
 
-        <attr name="selectType" format="enum">
+        <attr name="labelSelectType" format="enum">
             <enum name="NONE" value="1" />
             <enum name="SINGLE" value="2" />
             <enum name="SINGLE_IRREVOCABLY" value="3" />
             <enum name="MULTI" value="4" />
         </attr>
 
-        <attr name="labelGravity">
+        <attr name="labelTextGravity">
             <!-- Push object to the top of its container, not changing its size. -->
             <flag name="top" value="0x30" />
             <!-- Push object to the bottom of its container, not changing its size. -->

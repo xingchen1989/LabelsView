@@ -19,7 +19,9 @@ import com.xingchen.labels.interfaces.OnLabelClickListener;
 import com.xingchen.labels.interfaces.OnLabelSelectChangeListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LabelsView extends ViewGroup implements View.OnClickListener {
     private static final int KEY_DATA = R.id.label_key_data;//用于保存label数据的key
@@ -28,21 +30,20 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private static final int SELECT_SINGLE = 2;//单选,可以反选。
     private static final int SELECT_SINGLE_IRREVOCABLY = 3;//单选,不可以反选。这种模式下，至少有一个是选中的，默认是第一个。
     private static final int SELECT_MULTI = 4;//多选,可以反选。
-
     private int mSelectType;//选中模式
     private int mMaxLines;//最大行数
-    private int mLineMargin;//行与行的距离
-    private int mWordMargin;//标签和标签的距离
-    private int mLabelGravity;//标签的重力
+    private int mLineMargin;//行间距
+    private int mWordMargin;//标签间距
     private int mLabelWidth;//标签宽度
     private int mLabelHeight;//标签高度
     private int mLabelMinWidth;//标签最小宽度
     private int mLabelMinHeight;//标签最小高度
-    private int mTextColor;//文字颜色
     private int mTextPaddingLeft;//文字左内间距
     private int mTextPaddingTop;//文字上内间距
     private int mTextPaddingRight;//文字右内间距
     private int mTextPaddingBottom;//文字下内间距
+    private int mTextGravity;//文字的重力
+    private int mTextColor;//文字颜色
     private float mTextSize;//文字大小
     private boolean isTextBold;//是否加粗
     private Drawable mLabelBg;//标签背景
@@ -67,26 +68,25 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
      */
     private void initAttrs(Context context, AttributeSet attrs) {
         TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
-        mSelectType = mTypedArray.getInt(R.styleable.LabelsView_selectType, 1);
-        mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_maxLines, -1);
-        mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_wordMargin, dp2px(5));
-        mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_lineMargin, dp2px(5));
+        mSelectType = mTypedArray.getInt(R.styleable.LabelsView_labelSelectType, 1);
+        mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_labelMaxLines, -1);
         mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
         mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
-        mLabelGravity = mTypedArray.getInt(R.styleable.LabelsView_labelGravity, Gravity.CENTER);
+        mTextGravity = mTypedArray.getInt(R.styleable.LabelsView_labelTextGravity, Gravity.CENTER);
+        mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelWordMargin, dp2px(5));
+        mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelLineMargin, dp2px(5));
         mLabelWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextWidth, LayoutParams.WRAP_CONTENT);
         mLabelHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextHeight, LayoutParams.WRAP_CONTENT);
         mLabelMinWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinWidth, LayoutParams.WRAP_CONTENT);
         mLabelMinHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinHeight, LayoutParams.WRAP_CONTENT);
-        isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_isTextBold, false);
+        isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_labelTextIsBold, false);
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelBackground)) {
             mLabelBg = mTypedArray.getDrawable(R.styleable.LabelsView_labelBackground);
         } else {
             mLabelBg = ContextCompat.getDrawable(context, R.drawable.default_label_bg);
         }
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelTextPadding)) {
-            mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom =
-                    mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+            mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
         } else {
             mTextPaddingLeft = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingLeft, dp2px(10));
             mTextPaddingTop = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingTop, dp2px(5));
@@ -112,15 +112,12 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         int wordMargin = 0;
         //记录有多少行
         int lineCount = 1;
-
         //循环测量item并计算控件的内容宽高
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             measureChild(child, widthMeasureSpec, heightMeasureSpec);
-
             //第一项不考虑间距
             wordMargin = i > 0 ? mWordMargin : 0;
-
             //不需要换行
             if (lineWidth + child.getMeasuredWidth() + wordMargin < maxWidth) {
                 //记录行宽
@@ -143,23 +140,47 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         }
         //统计最后的高度
         contentHeight += maxItemHeight;
-
         int wideSize = maxLineWidth + getPaddingLeft() + getPaddingRight();
         int heightSize = contentHeight + getPaddingTop() + getPaddingBottom();
-        setMeasuredDimension(resolveSizeAndState(wideSize, widthMeasureSpec, 0),
-                resolveSizeAndState(heightSize, heightMeasureSpec, 0));
+        setMeasuredDimension(resolveSizeAndState(wideSize, widthMeasureSpec, 0), resolveSizeAndState(heightSize, heightMeasureSpec, 0));
     }
 
+    List<View> labels = new ArrayList<>();
+    Map<Integer,Integer>s=new HashMap<>();
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int lineCount = 1;
         int maxItemHeight = 0;
         int xCoordinate = 0;
         int yCoordinate = getPaddingTop();
-
+        //可用宽度
         int availableSpace = getWidth() - getPaddingLeft() - getPaddingRight();
 
+        int totalwidth = 0;
+        int space = 0;
+
+
+        //循环摆放标签
         for (int i = 0; i < getChildCount(); i++) {
+            View label = getChildAt(i);
+            int labelWidth=label.getMeasuredWidth();
+            if (availableSpace > i * mWordMargin + totalwidth + labelWidth) {
+                labels.add(label);
+                totalwidth += labelWidth;
+                if (i == getChildCount() - 1) {
+                    space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
+                    s.put(lineCount,space);
+                }
+            } else {
+                space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
+                s.put(lineCount,space);
+                totalwidth = 0;
+                labels.clear();
+            }
+        }
+
+        //循环摆放标签
+       /* for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
             if (availableSpace > xCoordinate + view.getMeasuredWidth()) {
                 maxItemHeight = Math.max(maxItemHeight, view.getMeasuredHeight());
@@ -173,7 +194,44 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             }
             view.layout(xCoordinate, yCoordinate, xCoordinate + view.getMeasuredWidth(), yCoordinate + view.getMeasuredHeight());
             xCoordinate += (mWordMargin + view.getMeasuredWidth());
-        }
+        }*/
+
+
+       /* //循环摆放标签
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+            if (availableSpace > i * mWordMargin + totalwidth + view.getMeasuredWidth()) {
+                labels.add(view);
+                totalwidth += view.getMeasuredWidth();
+                maxItemHeight = Math.max(maxItemHeight, view.getMeasuredHeight());
+                if (i == getChildCount() - 1) {
+                    space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
+                    for (int j = 0; j < labels.size(); j++) {
+                        View label =labels.get(j);
+                        label.layout(xCoordinate, yCoordinate, xCoordinate + label.getMeasuredWidth(), yCoordinate + label.getMeasuredHeight());
+                        xCoordinate += (space + label.getMeasuredWidth());
+                    }
+                    totalwidth = 0;
+                    labels.clear();
+                }
+            } else {
+                space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
+                for (int j = 0; j < labels.size(); j++) {
+                    View label =labels.get(j);
+                    label.layout(xCoordinate, yCoordinate, xCoordinate + label.getMeasuredWidth(), yCoordinate + label.getMeasuredHeight());
+                    xCoordinate += (space + label.getMeasuredWidth());
+                }
+                totalwidth = 0;
+                xCoordinate = 0;
+                yCoordinate += (mLineMargin + maxItemHeight);
+                maxItemHeight = view.getMeasuredHeight();
+                labels.clear();
+                if (++lineCount > mMaxLines && mMaxLines > 0) {
+                    break;
+                }
+            }
+        }*/
+
     }
 
     @Override
@@ -392,10 +450,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         TextView label = new TextView(getContext());
         label.setTag(KEY_DATA, data);
         label.setTag(KEY_POSITION, position);
+        label.setTextColor(mTextColor);
+        label.setGravity(mTextGravity);
         label.setMinWidth(mLabelMinWidth);
         label.setMinHeight(mLabelMinHeight);
-        label.setTextColor(mTextColor);
-        label.setGravity(mLabelGravity);
         label.getPaint().setFakeBoldText(isTextBold);
         label.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         label.setPadding(mTextPaddingLeft, mTextPaddingTop, mTextPaddingRight, mTextPaddingBottom);

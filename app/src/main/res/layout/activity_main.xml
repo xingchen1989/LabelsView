@@ -15,8 +15,8 @@
         app:labelBackground="@drawable/label_bg"
         app:labelTextColor="#785643"
         app:labelTextSize="16sp"
-        app:lineMargin="60dp"
-        app:maxLines="2"
-        app:selectType="MULTI"
-        app:wordMargin="20dp" />
+        app:labelLineMargin="60dp"
+        app:labelMaxLines="3"
+        app:labelSelectType="MULTI"
+        app:labelWordMargin="20dp" />
 </LinearLayout>
