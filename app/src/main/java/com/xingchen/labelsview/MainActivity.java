@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         labelsView = findViewById(R.id.labels);
-        labelsView.setLabels(getLabels());
+        labelsView.setmLayoutLabels(getLabels());
         labelsView.setSelects(0, 2);
         labelsView.setOnLabelClickListener(new OnLabelClickListener() {
             @Override
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         labels.add("糖尿病");
         labels.add("高血压");
         labels.add("高血糖");
-        labels.add("甲状腺机能障碍");
+        labels.add("甲状");
         labels.add("冠心病");
         labels.add("脑血栓");
         labels.add("脑血管病变");

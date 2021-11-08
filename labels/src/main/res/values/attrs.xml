@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="LabelsView">
+        <attr name="labelBackground" format="reference" />
         <attr name="labelTextIsBold" format="boolean" />
         <attr name="labelMaxLines" format="integer" />
         <attr name="labelTextColor" format="color" />
@@ -16,7 +17,11 @@
         <attr name="labelTextPaddingTop" format="dimension" />
         <attr name="labelTextPaddingRight" format="dimension" />
         <attr name="labelTextPaddingBottom" format="dimension" />
-        <attr name="labelBackground" format="reference" />
+
+        <attr name="labelSpaceType" format="enum">
+            <enum name="EXACTLY" value="1" />
+            <enum name="SPREAD" value="2" />
+        </attr>
 
         <attr name="labelSelectType" format="enum">
             <enum name="NONE" value="1" />

@@ -19,9 +19,7 @@ import com.xingchen.labels.interfaces.OnLabelClickListener;
 import com.xingchen.labels.interfaces.OnLabelSelectChangeListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LabelsView extends ViewGroup implements View.OnClickListener {
     private static final int KEY_DATA = R.id.label_key_data;//用于保存label数据的key
@@ -31,6 +29,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private static final int SELECT_SINGLE_IRREVOCABLY = 3;//单选,不可以反选。这种模式下，至少有一个是选中的，默认是第一个。
     private static final int SELECT_MULTI = 4;//多选,可以反选。
     private int mSelectType;//选中模式
+    private int mSpaceType;//间距模式
     private int mMaxLines;//最大行数
     private int mLineMargin;//行间距
     private int mWordMargin;//标签间距
@@ -49,7 +48,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private Drawable mLabelBg;//标签背景
     private OnLabelClickListener mLabelClickListener;
     private OnLabelSelectChangeListener mLabelSelectChangeListener;
-    private final ArrayList<View> mSelectLabels = new ArrayList<>();//保存选中的label
+    private final List<View> mLayoutLabels = new ArrayList<>();//待布局的标签
+    private final List<View> mSelectLabels = new ArrayList<>();//选中的标签
 
     public LabelsView(Context context) {
         this(context, null);
@@ -68,6 +68,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
      */
     private void initAttrs(Context context, AttributeSet attrs) {
         TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
+        isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_labelTextIsBold, false);
+        mSpaceType = mTypedArray.getInt(R.styleable.LabelsView_labelSpaceType, 1);
         mSelectType = mTypedArray.getInt(R.styleable.LabelsView_labelSelectType, 1);
         mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_labelMaxLines, -1);
         mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
@@ -79,7 +81,6 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         mLabelHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextHeight, LayoutParams.WRAP_CONTENT);
         mLabelMinWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinWidth, LayoutParams.WRAP_CONTENT);
         mLabelMinHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextMinHeight, LayoutParams.WRAP_CONTENT);
-        isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_labelTextIsBold, false);
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelBackground)) {
             mLabelBg = mTypedArray.getDrawable(R.styleable.LabelsView_labelBackground);
         } else {
@@ -97,6 +98,60 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        //控件最大可用宽度
+        int maxWidth = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
+        //记录有多少行
+        int lineCount = 1;
+        //记录行的宽度
+        int totalWidth = 0;
+        //标签之间的间距
+        int totalMargin = 0;
+        //记录最宽的行宽
+        int maxLineWidth = 0;
+        //记录一行中item高度最大的高度
+        int maxItemHeight = 0;
+        //记录内容的高度
+        int contentHeight = 0;
+        //循环测量item并计算控件的内容宽高
+        for (int i = 0; i < getChildCount(); i++) {
+            View label = getChildAt(i);
+            //测量标签大小
+            measureChild(label, widthMeasureSpec, heightMeasureSpec);
+            //标签的宽度
+            int labelWidth = label.getMeasuredWidth();
+            //标签的高度
+            int labelHeight = label.getMeasuredHeight();
+            //不需要换行
+            if (labelWidth + totalWidth + totalMargin < maxWidth) {
+                //标签总间距
+                totalMargin += mWordMargin;
+                //记录行宽
+                totalWidth += labelWidth;
+                //记录一行中item高度最大的高度
+                maxItemHeight = Math.max(maxItemHeight, labelHeight);
+                //记录最大行宽
+                maxLineWidth = Math.max(maxLineWidth, totalWidth + totalMargin);
+            } else {
+                if (++lineCount > mMaxLines && mMaxLines > 0) {
+                    break;
+                }
+                //换行的情况记录加上上一行内容高度和间距
+                contentHeight += (maxItemHeight + mLineMargin);
+                //下一行开始的初始行宽，为下次记录做准备
+                totalWidth = labelWidth;
+                //下一行开始的初始行高，为下次记录做准备
+                maxItemHeight = labelHeight;
+            }
+        }
+        //统计最后的高度
+        contentHeight += maxItemHeight;
+        int widthSize = maxLineWidth + getPaddingLeft() + getPaddingRight();
+        int heightSize = contentHeight + getPaddingTop() + getPaddingBottom();
+        setMeasuredDimension(resolveSizeAndState(widthSize, widthMeasureSpec, 0), resolveSizeAndState(heightSize, heightMeasureSpec, 0));
+    }
+
+  /*  @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         //控件最大可用宽度
         int maxWidth = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
@@ -143,41 +198,16 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         int wideSize = maxLineWidth + getPaddingLeft() + getPaddingRight();
         int heightSize = contentHeight + getPaddingTop() + getPaddingBottom();
         setMeasuredDimension(resolveSizeAndState(wideSize, widthMeasureSpec, 0), resolveSizeAndState(heightSize, heightMeasureSpec, 0));
-    }
+    }*/
 
-    List<View> labels = new ArrayList<>();
-    Map<Integer,Integer>s=new HashMap<>();
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int lineCount = 1;
         int maxItemHeight = 0;
+        int totalWidth = 0;
         int xCoordinate = 0;
         int yCoordinate = getPaddingTop();
-        //可用宽度
         int availableSpace = getWidth() - getPaddingLeft() - getPaddingRight();
-
-        int totalwidth = 0;
-        int space = 0;
-
-
-        //循环摆放标签
-        for (int i = 0; i < getChildCount(); i++) {
-            View label = getChildAt(i);
-            int labelWidth=label.getMeasuredWidth();
-            if (availableSpace > i * mWordMargin + totalwidth + labelWidth) {
-                labels.add(label);
-                totalwidth += labelWidth;
-                if (i == getChildCount() - 1) {
-                    space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
-                    s.put(lineCount,space);
-                }
-            } else {
-                space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
-                s.put(lineCount,space);
-                totalwidth = 0;
-                labels.clear();
-            }
-        }
 
         //循环摆放标签
        /* for (int i = 0; i < getChildCount(); i++) {
@@ -196,42 +226,35 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             xCoordinate += (mWordMargin + view.getMeasuredWidth());
         }*/
 
-
-       /* //循环摆放标签
+        int totalMargin = 0;
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
-            if (availableSpace > i * mWordMargin + totalwidth + view.getMeasuredWidth()) {
-                labels.add(view);
-                totalwidth += view.getMeasuredWidth();
-                maxItemHeight = Math.max(maxItemHeight, view.getMeasuredHeight());
-                if (i == getChildCount() - 1) {
-                    space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
-                    for (int j = 0; j < labels.size(); j++) {
-                        View label =labels.get(j);
-                        label.layout(xCoordinate, yCoordinate, xCoordinate + label.getMeasuredWidth(), yCoordinate + label.getMeasuredHeight());
-                        xCoordinate += (space + label.getMeasuredWidth());
-                    }
-                    totalwidth = 0;
-                    labels.clear();
-                }
+            int labelWidth = view.getMeasuredWidth();
+            boolean haveSpace = availableSpace > labelWidth + totalWidth + totalMargin;
+            if (haveSpace && i < getChildCount() - 1) {
+                mLayoutLabels.add(view);
+                totalWidth += labelWidth;
+                totalMargin += mWordMargin;
+                maxItemHeight = Math.max(maxItemHeight, labelWidth);
             } else {
-                space = labels.size() > 1 ? (availableSpace - totalwidth) / (labels.size() - 1) : 0;
-                for (int j = 0; j < labels.size(); j++) {
-                    View label =labels.get(j);
-                    label.layout(xCoordinate, yCoordinate, xCoordinate + label.getMeasuredWidth(), yCoordinate + label.getMeasuredHeight());
-                    xCoordinate += (space + label.getMeasuredWidth());
+                int spaceWidth = mWordMargin;
+                if (mSpaceType == 2 && mLayoutLabels.size() > 1) {
+                    spaceWidth = (availableSpace - totalWidth) / (mLayoutLabels.size() - 1);
                 }
-                totalwidth = 0;
+                for (View label : mLayoutLabels) {
+                    int right = xCoordinate + label.getMeasuredWidth();
+                    int bottom = yCoordinate + label.getMeasuredHeight();
+                    label.layout(xCoordinate, yCoordinate, right, bottom);
+                    xCoordinate += (spaceWidth + label.getMeasuredWidth());
+                }
+                totalMargin = 0;
                 xCoordinate = 0;
+                totalWidth = labelWidth;
                 yCoordinate += (mLineMargin + maxItemHeight);
-                maxItemHeight = view.getMeasuredHeight();
-                labels.clear();
-                if (++lineCount > mMaxLines && mMaxLines > 0) {
-                    break;
-                }
+                mLayoutLabels.clear();
+                mLayoutLabels.add(view);
             }
-        }*/
-
+        }
     }
 
     @Override
@@ -390,10 +413,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     /**
      * 设置标签列表
      *
-     * @param labels
+     * @param mLayoutLabels
      */
-    public void setLabels(List<String> labels) {
-        setLabels(labels, new LabelTextProvider<String>() {
+    public void setmLayoutLabels(List<String> mLayoutLabels) {
+        setLabels(mLayoutLabels, new LabelTextProvider<String>() {
             @Override
             public CharSequence getLabelText(TextView label, int position, String data) {
                 return data.trim();
