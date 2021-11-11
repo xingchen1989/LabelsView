@@ -8,7 +8,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.xingchen.labels.view.LabelsView
+    <!--<com.xingchen.labels.view.LabelsView
         android:id="@+id/labels"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,5 +26,41 @@
         app:labelTextPaddingLeft="2dp"
         app:labelTextPaddingTop="10dp"
         app:labelTextSize="16sp"
-        app:labelWordMargin="20dp" />
+        app:labelWordMargin="20dp" />-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="15dp"
+        android:minHeight="100dp"
+        android:orientation="vertical"
+        android:padding="15dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:drawablePadding="10dp"
+            android:text="您的今日营养要点"
+            android:textColor="#24C065"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <com.xingchen.labels.view.LabelsView
+            android:id="@+id/lv_key_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="20dp"
+            app:labelSpaceType="SPREAD"
+            android:background="@color/colorPrimary"
+            app:labelBackground="@drawable/label_bg_2"
+            app:labelTextColor="#24C065"
+            app:labelTextSize="14sp"
+            app:labelWordMargin="10dp" />
+    </LinearLayout>
 </LinearLayout>

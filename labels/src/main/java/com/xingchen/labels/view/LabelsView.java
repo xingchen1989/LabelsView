@@ -86,12 +86,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             int labelWidth = getChildAt(i).getMeasuredWidth();
             //标签的高度
             int labelHeight = getChildAt(i).getMeasuredHeight();
-            //标签间距
-            int labelMargin = (i - lineFeedPos) * mWordMargin;
+            //记录一行的宽度
+            lineWidth += labelWidth + (i - lineFeedPos) * mWordMargin;
             //不需要换行
-            if (lineWidth + labelMargin <= maxWidth) {
-                //记录行宽
-                lineWidth += labelWidth + labelMargin;
+            if (lineWidth <= maxWidth) {
                 //记录行高
                 lineHeight = Math.max(lineHeight, labelHeight);
                 //记录最大行宽
@@ -139,12 +137,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             int labelWidth = getChildAt(i).getMeasuredWidth();
             //标签的高度
             int labelHeight = getChildAt(i).getMeasuredHeight();
-            //标签间距
-            int labelMargin = (i - lineFeedPos) * mWordMargin;
+            //记录一行的宽度
+            lineWidth += labelWidth + (i - lineFeedPos) * mWordMargin;
             //不需要换行
-            if (lineWidth + labelMargin <= maxWidth) {
-                //记录行宽
-                lineWidth += labelWidth + labelMargin;
+            if (lineWidth <= maxWidth) {
                 //记录行高
                 lineHeight = Math.max(lineHeight, labelHeight);
             } else {
