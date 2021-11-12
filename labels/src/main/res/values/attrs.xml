@@ -7,7 +7,7 @@
         <attr name="labelTextColor" format="color" />
         <attr name="labelTextSize" format="dimension" />
         <attr name="labelLineMargin" format="dimension" />
-        <attr name="labelWordMargin" format="dimension" />
+        <attr name="labelLabelMargin" format="dimension" />
         <attr name="labelTextWidth" format="dimension" />
         <attr name="labelTextHeight" format="dimension" />
         <attr name="labelTextMinWidth" format="dimension" />

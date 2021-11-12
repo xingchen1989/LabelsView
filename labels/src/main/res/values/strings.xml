@@ -2,4 +2,6 @@
 <resources>
     <item name="label_key_data" type="id" />
     <item name="label_key_position" type="id" />
+    <item name="label_coordinate_x" type="id" />
+    <item name="label_coordinate_y" type="id" />
 </resources>

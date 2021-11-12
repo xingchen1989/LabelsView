@@ -32,7 +32,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private int mSpaceType;//间距模式
     private int mMaxLines;//最大行数
     private int mLineMargin;//行间距
-    private int mWordMargin;//标签间距
+    private int mLabelMargin;//标签间距
     private int mLabelWidth;//标签宽度
     private int mLabelHeight;//标签高度
     private int mLabelMinWidth;//标签最小宽度
@@ -45,12 +45,9 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private int mTextColor;//文字颜色
     private float mTextSize;//文字大小
     private boolean isTextBold;//是否加粗
-    private int xCoordinate; //初始横坐标
-    private int yCoordinate;//初始纵坐标
     private Drawable mLabelBg;//标签背景
     private OnLabelClickListener mLabelClickListener;
     private OnLabelSelectChangeListener mLabelSelectChangeListener;
-    private final List<View> mLayoutLabels = new ArrayList<>();//待布局的标签
     private final List<View> mSelectLabels = new ArrayList<>();//选中的标签
 
     public LabelsView(Context context) {
@@ -68,16 +65,20 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         int maxWidth = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
         //记录有多少行
         int lineCount = 1;
-        //记录行的宽度
-        int lineWidth = 0;
-        //记录行高
-        int lineHeight = 0;
-        //记录最宽的行宽
-        int maxLineWidth = 0;
-        //记录内容的高度
-        int contentHeight = 0;
         //记录换行位置
         int lineFeedPos = 0;
+        //记录最宽的行宽
+        int maxLineWidth = 0;
+        //记录行高
+        int maxLabelHeight = 0;
+        //记录行的宽度
+        int totalLabelWidth = 0;
+        //记录内容的高度
+        int layoutContentHeight = 0;
+        //初始横坐标
+        int coordinateX = getPaddingLeft();
+        //初始纵坐标
+        int coordinateY = getPaddingTop();
         //循环测量item并计算控件的内容宽高
         for (int i = 0; i < getChildCount(); i++) {
             //测量标签大小
@@ -86,78 +87,88 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             int labelWidth = getChildAt(i).getMeasuredWidth();
             //标签的高度
             int labelHeight = getChildAt(i).getMeasuredHeight();
-            //记录一行的宽度
-            lineWidth += labelWidth + (i - lineFeedPos) * mWordMargin;
+            //记录标签总间隔
+            int labelTotalMargin = (i - lineFeedPos) * mLabelMargin;
             //不需要换行
-            if (lineWidth <= maxWidth) {
+            if (totalLabelWidth + labelWidth + labelTotalMargin <= maxWidth) {
+                //计算行宽
+                totalLabelWidth += labelWidth;
                 //记录行高
-                lineHeight = Math.max(lineHeight, labelHeight);
+                maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
                 //记录最大行宽
-                maxLineWidth = Math.max(maxLineWidth, lineWidth);
+                maxLineWidth = Math.max(maxLineWidth, totalLabelWidth + labelTotalMargin);
+                if (i == getChildCount() - 1) {
+                    //标签默认间距
+                    int defaultLabelMargin = mLabelMargin;
+                    if (mSpaceType == 2 && (getChildCount() - lineFeedPos) > 1) {
+                        defaultLabelMargin = (maxWidth - totalLabelWidth) / (getChildCount() - lineFeedPos - 1);
+                    }
+                    for (int j = lineFeedPos; j < getChildCount(); j++) {
+                        //记录横坐标
+                        getChildAt(j).setTag(R.id.label_coordinate_x, coordinateX);
+                        //记录纵坐标
+                        getChildAt(j).setTag(R.id.label_coordinate_y, coordinateY);
+                        //刷新下次的横坐标
+                        coordinateX += getChildAt(j).getMeasuredWidth() + defaultLabelMargin;
+                    }
+                }
             } else {
+                //标签默认间距
+                int defaultLabelMargin = mLabelMargin;
+                if (mSpaceType == 2 && (i - lineFeedPos) > 1) {
+                    defaultLabelMargin = (maxWidth - totalLabelWidth) / (i - lineFeedPos - 1);
+                }
+                for (int j = lineFeedPos; j < i; j++) {
+                    //记录横坐标
+                    getChildAt(j).setTag(R.id.label_coordinate_x, coordinateX);
+                    //记录纵坐标
+                    getChildAt(j).setTag(R.id.label_coordinate_y, coordinateY);
+                    //刷新下次的横坐标
+                    coordinateX += getChildAt(j).getMeasuredWidth() + defaultLabelMargin;
+                }
                 if (++lineCount > mMaxLines && mMaxLines > 0) {
                     break;
+                } else {
+                    //下一行初始横坐标
+                    coordinateX = getPaddingLeft();
+                    //下一行初始纵坐标
+                    coordinateY += (maxLabelHeight + mLineMargin);
+                    //记录横坐标
+                    getChildAt(i).setTag(R.id.label_coordinate_x, coordinateX);
+                    //记录纵坐标
+                    getChildAt(i).setTag(R.id.label_coordinate_y, coordinateY);
+                    //换行的情况记录加上上一行内容高度和间距
+                    layoutContentHeight += (maxLabelHeight + mLineMargin);
+                    //下一行开始的初始行高，为下次记录做准备
+                    maxLabelHeight = labelHeight;
+                    //下一行开始的初始行宽，为下次记录做准备
+                    totalLabelWidth = labelWidth;
+                    //记录换行位置
+                    lineFeedPos = i;
                 }
-                //换行的情况记录加上上一行内容高度和间距
-                contentHeight += (lineHeight + mLineMargin);
-                //下一行开始的初始行宽，为下次记录做准备
-                lineWidth = labelWidth;
-                //下一行开始的初始行高，为下次记录做准备
-                lineHeight = labelHeight;
-                //记录换行位置
-                lineFeedPos = i;
             }
         }
         //统计最后的高度
-        contentHeight += lineHeight;
+        layoutContentHeight += maxLabelHeight;
         int widthSize = maxLineWidth + getPaddingLeft() + getPaddingRight();
-        int heightSize = contentHeight + getPaddingTop() + getPaddingBottom();
+        int heightSize = layoutContentHeight + getPaddingTop() + getPaddingBottom();
         setMeasuredDimension(resolveSizeAndState(widthSize, widthMeasureSpec, 0), resolveSizeAndState(heightSize, heightMeasureSpec, 0));
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        //记录有多少行
-        int lineCount = 1;
-        //记录行宽
-        int lineWidth = 0;
-        //记录行高
-        int lineHeight = 0;
-        //记录换行位置
-        int lineFeedPos = 0;
-        //控件最大可用宽度
-        int maxWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-        //初始横坐标
-        xCoordinate = getPaddingLeft();
-        //初始纵坐标
-        yCoordinate = getPaddingTop();
-        //循环摆放标签
         for (int i = 0; i < getChildCount(); i++) {
-            //标签的宽度
-            int labelWidth = getChildAt(i).getMeasuredWidth();
-            //标签的高度
-            int labelHeight = getChildAt(i).getMeasuredHeight();
-            //记录一行的宽度
-            lineWidth += labelWidth + (i - lineFeedPos) * mWordMargin;
-            //不需要换行
-            if (lineWidth <= maxWidth) {
-                //记录行高
-                lineHeight = Math.max(lineHeight, labelHeight);
-            } else {
-                if (++lineCount > mMaxLines && mMaxLines > 0) {
-                    break;
-                }
-                layoutLabels(mLayoutLabels, lineHeight);
-                //下一行开始的初始行宽，为下次记录做准备
-                lineWidth = labelWidth;
-                //下一行开始的初始行高，为下次记录做准备
-                lineHeight = labelHeight;
-                //记录换行位置
-                lineFeedPos = i;
+            View label = getChildAt(i);
+            Object tagX = label.getTag(R.id.label_coordinate_x);
+            Object tagY = label.getTag(R.id.label_coordinate_y);
+            if (tagX != null && tagY != null) {
+                int left = (int) tagX;
+                int top = (int) tagY;
+                int right = left + label.getMeasuredWidth();
+                int bottom = top + label.getMeasuredHeight();
+                label.layout(left, top, right, bottom);
             }
-            mLayoutLabels.add(getChildAt(i));
         }
-        layoutLabels(mLayoutLabels, lineHeight);
     }
 
     @Override
@@ -201,7 +212,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
         mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
         mTextGravity = mTypedArray.getInt(R.styleable.LabelsView_labelTextGravity, Gravity.CENTER);
-        mWordMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelWordMargin, dp2px(5));
+        mLabelMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelLabelMargin, dp2px(5));
         mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelLineMargin, dp2px(5));
         mLabelWidth = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextWidth, LayoutParams.WRAP_CONTENT);
         mLabelHeight = mTypedArray.getLayoutDimension(R.styleable.LabelsView_labelTextHeight, LayoutParams.WRAP_CONTENT);
@@ -213,7 +224,10 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             mLabelBg = ContextCompat.getDrawable(context, R.drawable.default_label_bg);
         }
         if (mTypedArray.hasValue(R.styleable.LabelsView_labelTextPadding)) {
-            mTextPaddingLeft = mTextPaddingTop = mTextPaddingRight = mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+            mTextPaddingLeft = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+            mTextPaddingTop = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+            mTextPaddingRight = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
+            mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPadding, 0);
         } else {
             mTextPaddingLeft = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingLeft, dp2px(10));
             mTextPaddingTop = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingTop, dp2px(5));
@@ -221,33 +235,6 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
             mTextPaddingBottom = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelTextPaddingBottom, dp2px(5));
         }
         mTypedArray.recycle();
-    }
-
-    /**
-     * 摆放标签
-     *
-     * @param labels
-     * @param lineHeight
-     */
-    private void layoutLabels(List<View> labels, int lineHeight) {
-        int spaceWidth = mWordMargin;
-        if (mSpaceType == 2 && labels.size() > 1) {
-            int lineWidth = 0;
-            int maxWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-            for (View label : labels) {
-                lineWidth += label.getMeasuredWidth();
-            }
-            spaceWidth = (maxWidth - lineWidth) / (labels.size() - 1);
-        }
-        for (View label : labels) {
-            int right = xCoordinate + label.getMeasuredWidth();
-            int bottom = yCoordinate + label.getMeasuredHeight();
-            label.layout(xCoordinate, yCoordinate, right, bottom);
-            xCoordinate += (spaceWidth + label.getMeasuredWidth());
-        }
-        labels.clear();
-        xCoordinate = getPaddingLeft();
-        yCoordinate += (lineHeight + mLineMargin);
     }
 
     /**
@@ -422,8 +409,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
                 mSelectLabels.remove(label);
             }
             if (mLabelSelectChangeListener != null) {
-                mLabelSelectChangeListener.onLabelSelectChange((TextView) label,
-                        label.getTag(KEY_DATA), isSelect, (int) label.getTag(KEY_POSITION));
+                mLabelSelectChangeListener.onLabelSelectChange((TextView) label, label.getTag(KEY_DATA), isSelect, (int) label.getTag(KEY_POSITION));
             }
         }
     }
@@ -475,15 +461,13 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
      * sp转px
      */
     private int sp2px(float spVal) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
-                spVal, getResources().getDisplayMetrics());
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spVal, getResources().getDisplayMetrics());
     }
 
     /**
      * dp转px
      */
     private int dp2px(float dpVal) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                dpVal, getResources().getDisplayMetrics());
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, getResources().getDisplayMetrics());
     }
 }
