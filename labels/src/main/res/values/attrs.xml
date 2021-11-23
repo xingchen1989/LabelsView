@@ -3,6 +3,7 @@
     <declare-styleable name="LabelsView">
         <attr name="labelBackground" format="reference" />
         <attr name="labelTextIsBold" format="boolean" />
+        <attr name="labelForbidClick" format="boolean" />
         <attr name="labelMaxLines" format="integer" />
         <attr name="labelTextColor" format="color" />
         <attr name="labelTextSize" format="dimension" />

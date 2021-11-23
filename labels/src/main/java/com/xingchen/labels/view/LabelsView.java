@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -45,6 +46,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private int mTextColor;//文字颜色
     private float mTextSize;//文字大小
     private boolean isTextBold;//是否加粗
+    private boolean isForbidClick;//是否禁止点击
     private Drawable mLabelBg;//标签背景
     private OnLabelClickListener mLabelClickListener;
     private OnLabelSelectChangeListener mLabelSelectChangeListener;
@@ -57,6 +59,11 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     public LabelsView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initAttrs(context, attrs);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return isForbidClick || super.onInterceptTouchEvent(ev);
     }
 
     @Override
@@ -206,6 +213,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private void initAttrs(Context context, AttributeSet attrs) {
         TypedArray mTypedArray = context.obtainStyledAttributes(attrs, R.styleable.LabelsView);
         isTextBold = mTypedArray.getBoolean(R.styleable.LabelsView_labelTextIsBold, false);
+        isForbidClick = mTypedArray.getBoolean(R.styleable.LabelsView_labelForbidClick, false);
         mSpaceType = mTypedArray.getInt(R.styleable.LabelsView_labelSpaceType, 1);
         mSelectType = mTypedArray.getInt(R.styleable.LabelsView_labelSelectType, 1);
         mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_labelMaxLines, -1);
@@ -244,10 +252,6 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
      */
     public void setOnLabelClickListener(OnLabelClickListener labelClickListener) {
         mLabelClickListener = labelClickListener;
-        for (int i = 0; i < getChildCount(); i++) {
-            TextView label = (TextView) getChildAt(i);
-            label.setClickable(mLabelClickListener != null);
-        }
     }
 
     /**
