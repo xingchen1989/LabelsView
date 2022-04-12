@@ -22,12 +22,6 @@ public class MainActivity extends AppCompatActivity {
         LabelsView labelsView = findViewById(R.id.labels);
         labelsView.setLabels(getLabels());
         labelsView.setSelects(0, 2);
-        labelsView.setOnLabelClickListener(new OnLabelClickListener() {
-            @Override
-            public void onLabelClick(TextView label, Object data, int position) {
-                Toast.makeText(MainActivity.this, "点击了：" + label.getText(), Toast.LENGTH_SHORT).show();
-            }
-        });
         labelsView.setOnLabelSelectChangeListener(new OnLabelSelectChangeListener() {
             @Override
             public void onLabelSelectChange(TextView label, Object data, boolean isSelect, int position) {

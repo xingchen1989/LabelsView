@@ -183,15 +183,21 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         if (label instanceof TextView) {
             if (mSelectType != SELECT_NONE) {
                 if (mSelectType == SELECT_SINGLE) {
-                    if (mSelectLabels.contains(label)) {
-                        setLabelSelect(label, !label.isSelected());
+                    if (label.isSelected()) {
+                        for (View view : mSelectLabels) {
+                            setLabelSelect(view, false);
+                        }
                     } else {
-                        clearAllSelect();
+                        for (View view : mSelectLabels) {
+                            setLabelSelect(view, false);
+                        }
                         setLabelSelect(label, true);
                     }
                 } else if (mSelectType == SELECT_SINGLE_IRREVOCABLY) {
                     if (!label.isSelected()) {
-                        clearAllSelect();
+                        for (View view : mSelectLabels) {
+                            setLabelSelect(view, false);
+                        }
                         setLabelSelect(label, true);
                     }
                 } else if (mSelectType == SELECT_MULTI) {
