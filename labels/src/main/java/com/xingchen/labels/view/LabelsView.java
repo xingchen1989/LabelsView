@@ -1,8 +1,8 @@
 package com.xingchen.labels.view;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -43,11 +43,11 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
     private int mTextPaddingRight;//文字右内间距
     private int mTextPaddingBottom;//文字下内间距
     private int mTextGravity;//文字的重力
-    private int mTextColor;//文字颜色
     private float mTextSize;//文字大小
     private boolean isTextBold;//是否加粗
     private boolean isForbidClick;//是否禁止点击
     private Drawable mLabelBg;//标签背景
+    private ColorStateList mTextColor;//文字颜色
     private OnLabelClickListener mLabelClickListener;
     private OnLabelSelectChangeListener mLabelSelectChangeListener;
     private final List<View> mSelectLabels = new ArrayList<>();//选中的标签
@@ -224,7 +224,7 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         mSelectType = mTypedArray.getInt(R.styleable.LabelsView_labelSelectType, 1);
         mMaxLines = mTypedArray.getInteger(R.styleable.LabelsView_labelMaxLines, -1);
         mTextSize = mTypedArray.getDimension(R.styleable.LabelsView_labelTextSize, sp2px(14));
-        mTextColor = mTypedArray.getColor(R.styleable.LabelsView_labelTextColor, Color.BLACK);
+        mTextColor = mTypedArray.getColorStateList(R.styleable.LabelsView_labelTextColor);
         mTextGravity = mTypedArray.getInt(R.styleable.LabelsView_labelTextGravity, Gravity.CENTER);
         mLabelMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelLabelMargin, dp2px(5));
         mLineMargin = mTypedArray.getDimensionPixelOffset(R.styleable.LabelsView_labelLineMargin, dp2px(5));
@@ -455,17 +455,6 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         addView(label, mLabelWidth, mLabelHeight);
         label.setOnClickListener(this);
     }
-
-    /**
-     * 清除所有已选项
-     */
-    private void clearAllSelect() {
-        for (View item : mSelectLabels) {
-            item.setSelected(false);
-        }
-        mSelectLabels.clear();
-    }
-
 
     /**
      * sp转px
