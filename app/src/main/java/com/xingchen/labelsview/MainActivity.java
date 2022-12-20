@@ -1,12 +1,14 @@
 package com.xingchen.labelsview;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.xingchen.labels.interfaces.OnLabelClickListener;
 import com.xingchen.labels.interfaces.OnLabelSelectChangeListener;
 import com.xingchen.labels.view.LabelsView;
 

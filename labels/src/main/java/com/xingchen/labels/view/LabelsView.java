@@ -442,8 +442,8 @@ public class LabelsView extends ViewGroup implements View.OnClickListener {
         label.setMinWidth(mLabelMinWidth);
         label.setMinHeight(mLabelMinHeight);
         label.getPaint().setFakeBoldText(isTextBold);
-        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         label.setText(provider.getLabelText(label, position, data));
+        label.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         label.setBackground(mLabelBg.getConstantState().newDrawable());
         if (mLabelWidth == LayoutParams.WRAP_CONTENT && mLabelHeight == LayoutParams.WRAP_CONTENT) {
             label.setPadding(mTextPaddingLeft, mTextPaddingTop, mTextPaddingRight, mTextPaddingBottom);
